@@ -64,6 +64,9 @@ GQL_FEATURES = {  # search values here (view source) https://x.com/
     "responsive_web_jetfuel_frame": False,
     "rweb_video_screen_enabled": True,
     "responsive_web_grok_show_grok_translated_post": True,
+    "responsive_web_profile_redirect_enabled": True,
+    "responsive_web_grok_imagine_annotation_enabled": True,
+    "responsive_web_grok_community_note_auto_translation_is_enabled": True,
 }
 
 KV = dict | None

@@ -125,9 +125,17 @@ def get_typed_object(obj: dict, res: defaultdict[str, list]):
 
 
 def to_old_obj(obj: dict):
+    legacy_obj = obj.get("legacy", {}) or {}
+    core = obj.get("core", {})
+    legacy_obj = {**legacy_obj, **core}
+
+    avatar = obj.get("avatar", {})
+    if "image_url" in avatar:
+        legacy_obj = {**legacy_obj, "profile_image_url_https": avatar["image_url"]}
+
     return {
         **obj,
-        **obj["legacy"],
+        **legacy_obj,
         "id_str": str(obj["rest_id"]),
         "id": int(obj["rest_id"]),
         "legacy": None,

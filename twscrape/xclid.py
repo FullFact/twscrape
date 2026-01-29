@@ -49,12 +49,17 @@ def script_url(k: str, v: str):
 def get_scripts_list(text: str):
     scripts = text.split('e=>e+"."+')[1].split('[e]+"a.js"')[0]
     try:
-        unquoted_key = "node_modules_pnpm_ws_8_18_0_node_modules_ws_browser_js"
-        scripts = scripts.replace(unquoted_key, f'"{unquoted_key}"')  # fix malformed data in json
-        for k, v in json.loads(scripts).items():
-            yield script_url(k, f"{v}a")
-    except json.decoder.JSONDecodeError as e:
-        raise Exception("Failed to parse scripts") from e
+        data = json.loads(scripts)
+    except json.decoder.JSONDecodeError:
+        # Find unquoted keys {key:"value"} and convert to {"key":"value"}
+        fixed_scripts = re.sub(r"([{,]\s*)([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:", r'\1"\2":', scripts)
+        try:
+            data = json.loads(fixed_scripts)
+        except json.decoder.JSONDecodeError as e:
+            raise Exception("Failed to parse scripts") from e
+
+    for k, v in data.items():
+        yield script_url(k, f"{v}a")
 
 
 # MARK: XClientTxId parsing

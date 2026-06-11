@@ -235,17 +235,15 @@ async def parse_anim_idx(text: str) -> list[int]:
         sentry_url = sentry_match.group(1)
         if not sentry_url.startswith("http"):
             sentry_url = "https://abs.twimg.com" + sentry_url
-        try:
-            sentry_js = await get_tw_page_text(sentry_url)
-            sign_match = re.search(r"import\([\"'`]\./(" + r"sign\.[^\"'`]+\.js)[\"'`]", sentry_js)
-            if sign_match:
-                base = sentry_url.rsplit("/", 1)[0] + "/"
-                sign_js = await get_tw_page_text(base + sign_match.group(1))
-                items = [int(x.group(2)) for x in INDICES_REGEX.finditer(sign_js)]
-                if items:
-                    return items
-        except Exception: # So that we pass to the fallback/older methods
-            pass
+        
+        sentry_js = await get_tw_page_text(sentry_url)
+        sign_match = re.search(r"import\([\"'`]\./(" + r"sign\.[^\"'`]+\.js)[\"'`]", sentry_js)
+        if sign_match:
+            base = sentry_url.rsplit("/", 1)[0] + "/"
+            sign_js = await get_tw_page_text(base + sign_match.group(1))
+            items = [int(x.group(2)) for x in INDICES_REGEX.finditer(sign_js)]
+            if items:
+                return items
 
     # Previous format: "ondemand.s" is a value in a name map, hash lives in a second
     # map under the same key further in the HTML.

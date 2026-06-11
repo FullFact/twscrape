@@ -244,7 +244,7 @@ async def parse_anim_idx(text: str) -> list[int]:
                 items = [int(x.group(2)) for x in INDICES_REGEX.finditer(sign_js)]
                 if items:
                     return items
-        except Exception:
+        except Exception: # So that we pass to the fallback/older methods
             pass
 
     # Previous format: "ondemand.s" is a value in a name map, hash lives in a second

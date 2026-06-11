@@ -227,7 +227,25 @@ def _fextr(s: str, begin: str, end: str, pos: int = 0) -> str | None:
 
 
 async def parse_anim_idx(text: str) -> list[int]:
-    # New format: "ondemand.s" is a value in a name map, hash lives in a second
+    # Current format (Vite bundle): the signing algorithm lives in a sign.*.js chunk
+    # that is dynamically imported from the sentry-filter chunk, which is listed as a
+    # modulepreload link in the page HTML.
+    sentry_match = re.search(r'href=["\']([^"\']*sentry-filter[^"\']*\.js)["\']', text)
+    if sentry_match:
+        sentry_url = sentry_match.group(1)
+        if not sentry_url.startswith("http"):
+            sentry_url = "https://abs.twimg.com" + sentry_url
+        
+        sentry_js = await get_tw_page_text(sentry_url)
+        sign_match = re.search(r"import\([\"'`]\./(" + r"sign\.[^\"'`]+\.js)[\"'`]", sentry_js)
+        if sign_match:
+            base = sentry_url.rsplit("/", 1)[0] + "/"
+            sign_js = await get_tw_page_text(base + sign_match.group(1))
+            items = [int(x.group(2)) for x in INDICES_REGEX.finditer(sign_js)]
+            if items:
+                return items
+
+    # Previous format: "ondemand.s" is a value in a name map, hash lives in a second
     # map under the same key further in the HTML.
     ondemand_pos = text.find('"ondemand.s"')
     if ondemand_pos >= 0:

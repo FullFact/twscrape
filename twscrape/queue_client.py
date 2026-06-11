@@ -36,7 +36,7 @@ class XClIdGenStore:
                 clid_gen = await XClIdGen.create()
                 cls.items[username] = clid_gen
                 return clid_gen
-            except Exception:
+            except httpx.HTTPStatusError:
                 tries += 1
                 await asyncio.sleep(1)
 

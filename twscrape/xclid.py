@@ -261,19 +261,19 @@ async def parse_anim_idx(text: str) -> list[int]:
                 if items:
                     return items
 
-    # Oldest fallback: chunk map in the page JS contained ondemand.s as a key.
-    try:
-        scripts = list(get_scripts_list(text))
-        scripts = [x for x in scripts if "/ondemand.s." in x]
-        if scripts:
-            js_text = await get_tw_page_text(scripts[0])
-            items = [int(x.group(2)) for x in INDICES_REGEX.finditer(js_text)]
-            if items:
-                return items
-    except Exception:
-        pass
+    # Fallback: old format where the chunk map contains ondemand.s as a key.
+    scripts = list(get_scripts_list(text))
+    scripts = [x for x in scripts if "/ondemand.s." in x]
+    if not scripts:
+        raise Exception("Couldn't get XClientTxId scripts")
 
-    raise Exception("Couldn't get XClientTxId indices")
+    text = await get_tw_page_text(scripts[0])
+
+    items = [int(x.group(2)) for x in INDICES_REGEX.finditer(text)]
+    if not items:
+        raise Exception("Couldn't get XClientTxId indices")
+
+    return items
 
 
 def parse_anim_arr(soup: bs4.BeautifulSoup, vk_bytes: list[int]) -> list[list[float]]:

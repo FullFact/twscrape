@@ -264,8 +264,17 @@ def parse_anim_arr(soup: bs4.BeautifulSoup, vk_bytes: list[int]) -> list[list[fl
         raise Exception("Couldn't get XClientTxId animation array")
 
     idx = vk_bytes[5] % len(els)
-    dat = els[idx][9:].split("C")
+    # Locate the first cubic bezier command rather than skipping a fixed 9 chars,
+    # since the M command length varies and a wrong offset truncates the first segment.
+    d_str = els[idx].upper()
+    c_start = d_str.find("C")
+    if c_start < 0:
+        raise Exception("Couldn't get XClientTxId animation path")
+    dat = d_str[c_start + 1:].split("C")
     arr = [list(map(float, re.sub(r"[^\d]+", " ", x).split())) for x in dat]
+    arr = [x for x in arr if x]
+    if not arr:
+        raise Exception("Couldn't parse XClientTxId animation frames")
     return arr
 
 
@@ -278,7 +287,8 @@ async def load_keys(soup: bs4.BeautifulSoup) -> tuple[list[int], str]:
     for x in anim_idx[1:]:
         frame_time *= vk_bytes[x] % 16
 
-    frame_idx = vk_bytes[anim_idx[0]] % 16
+    # Use % len(anim_arr) so we stay in bounds if X reduces the number of animation frames.
+    frame_idx = vk_bytes[anim_idx[0]] % len(anim_arr)
     frame_row = anim_arr[frame_idx]
     frame_dur = float(frame_time) / 4096
 

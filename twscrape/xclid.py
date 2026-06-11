@@ -296,8 +296,7 @@ async def load_keys(soup: bs4.BeautifulSoup) -> tuple[list[int], str]:
     for x in anim_idx[1:]:
         frame_time *= vk_bytes[x] % 16
 
-    # Use % len(anim_arr) so we stay in bounds if X reduces the number of animation frames.
-    frame_idx = vk_bytes[anim_idx[0]] % len(anim_arr)
+    frame_idx = vk_bytes[anim_idx[0]] % 16
     frame_row = anim_arr[frame_idx]
     frame_dur = float(frame_time) / 4096
 
